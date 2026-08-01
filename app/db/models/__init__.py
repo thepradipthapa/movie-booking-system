@@ -1,0 +1,9 @@
+from app.db.models.booking import Booking  # noqa: F401
+from app.db.models.booking_items import BookingItem  # noqa: F401
+from app.db.models.movie import Movie  # noqa: F401
+from app.db.models.screen import Screen  # noqa: F401
+from app.db.models.seat import Seat  # noqa: F401
+from app.db.models.show import Show  # noqa: F401
+from app.db.models.show_seat import ShowSeat  # noqa: F401
+from app.db.models.theater import Theater  # noqa: F401
+from app.db.models.user import User  # noqa: F401
