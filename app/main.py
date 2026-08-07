@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 
-from app.api.routes import theater
+from app.api.routes import screen, theater
 
 app = FastAPI(title="Movie Booking System")
 
 app.include_router(theater.router)
+app.include_router(screen.router)
