@@ -6,5 +6,13 @@ class ScreenNotFoundError(NotFoundError):
     pass
 
 
+class MovieNotFoundError(NotFoundError):
+    pass
+
+
 class DuplicateSeatError(Exception):
     """Raised when a seat with the same (screen_id, row_label, seat_number) already exists."""
+    
+
+class DuplicateShowError(Exception):
+    """Raised when a show with the same (screen_id, start_time) already exists."""

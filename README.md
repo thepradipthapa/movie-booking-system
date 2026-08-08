@@ -126,6 +126,9 @@ existence.
 - [ ] Coupon codes
 - [ ] Cancellation rules (time-based, before show start)
 - [ ] Automated tests, including simulated concurrent booking attempts
+- [ ] Prevent overlapping show times on the same screen (currently only
+      exact-duplicate start_time is blocked - a show's actual duration
+      isn't considered, so overlapping showtimes can be created)
 
 ---
 
