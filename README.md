@@ -115,6 +115,7 @@ existence.
 ## Roadmap
 
 - [x] Database schema, models, and migrations
+- [x] Database schema, models, and migrations
 - [ ] Core CRUD APIs (theaters, screens, seats, movies, shows)
 - [ ] Authentication (JWT-based)
 - [ ] Seat holding mechanism with expiry
