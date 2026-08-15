@@ -16,3 +16,7 @@ class DuplicateSeatError(Exception):
 
 class DuplicateShowError(Exception):
     """Raised when a show with the same (screen_id, start_time) already exists."""
+    
+    
+class EmailAlreadyExistsError(Exception):
+    """Raised when signup is attempted with an email that's already registered."""
