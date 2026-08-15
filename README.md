@@ -1,9 +1,8 @@
 # Movie Booking System
 
-A movie booking backend focused on solving real concurrency problems -
-preventing double-bookings under race conditions, and enforcing data
-integrity at the database level rather than hoping application code never
-has a bug.
+A production-grade ticket booking backend built with **FastAPI** and **PostgreSQL**.
+Focuses on real engineering challenges — concurrent seat reservations, double-booking
+prevention, idempotent APIs, and time-based cancellation policies.
 
 > **Status: work in progress, built incrementally.**
 
@@ -19,38 +18,46 @@ has a bug.
 - Alembic-managed, version-controlled migrations from the very first table
 - Clean project structure separating config, database models, and (soon)
   API routes, request/response schemas, and business logic
-
-*[Roadmap](#roadmap)*
+- Complete CRUD flow of theaters, screens, movies, seats and shows
 
 ---
-
-## Architecture
-
-```
-HTTP Request
-    |
-    v
-FastAPI (routing, request validation via Pydantic)
-    |
-    v
-Service layer (business logic - not yet implemented)
-    |
-    v
-SQLAlchemy (ORM, typed models)
-    |
-    v
-PostgreSQL
-```
-
-Alembic sits alongside this, managing how the database schema evolves over
-time as a series of version-controlled migration scripts.
-
-**Stack**
-- **FastAPI**
-- **SQLAlchemy 2.0**
-- **Alembic**
-- **PostgreSQL**
-- **uv**
+## Engineering Highlights
+---
+## Tech Stack
+ 
+| Layer       | Technology                          |
+|-------------|-------------------------------------|
+| Backend     | Python, FastAPI                     |
+| Database    | PostgreSQL                          |
+| ORM         | SQLAlchemy 2.0                      |
+| Migrations  | Alembic                             |
+| Auth        | JWT                                 |
+| API Docs    | Swagger UI (auto-generated)         |
+ 
+---
+ 
+## System Requirements
+ 
+### Functional Requirements
+ 
+- User registration and login with JWT-based authentication
+- Browse movies, showtimes, and seat maps by city
+- Hold seats temporarily during checkout (10-minute TTL)
+- Apply coupon codes for percentage or flat discounts
+- Confirm booking with payment (mocked)
+- Cancel booking only if more than 1 hour before show start
+- Admin can create movies, shows, screens, and seats
+### Non-Functional Requirements
+ 
+- No two users can ever book the same seat for the same show
+- System must remain consistent under concurrent load on the last available seat
+- Booking API must be idempotent — safe to retry on network failures
+- Hold expiry enforced server-side regardless of client-side timer state
+- Security - Passwords hashed with bcrypt — plain text never stored
+- Availability
+- Performance - smooth and fast booking
+- Maintainability - code structure, versioned migrations
+- Observability - Structure logging, Request correlations 
 
 ---
 
@@ -107,31 +114,43 @@ existence.
 
 ---
 
+## High-Level Architecture
+
+---
+
+ ### Booking Request Flow
+```
+1. GET  /shows/{id}/seats          → fetch current seat availability
+2. POST /holds                     → hold selected seats (10-min TTL)
+        └── pessimistic lock on ShowSeat row (SELECT FOR UPDATE)
+        └── status: AVAILABLE → HELD
+3. POST /bookings                  → confirm booking
+        └── optimistic lock check (version column)
+        └── status: HELD → BOOKED
+        └── idempotency key prevents duplicate on retry
+4. PATCH /bookings/{id}/cancel     → cancel if > 1hr before show
+        └── status: BOOKED → AVAILABLE
+```
+
+---
+
 ## Database Design
 
 ![Entity Relationship Diagram](docs/ERD.png)
 ---
 
-## Roadmap
-
-- [x] Database schema, models, and migrations
-- [x] Database schema, models, and migrations
-- [ ] Core CRUD APIs (theaters, screens, seats, movies, shows)
-- [ ] Authentication (JWT-based)
-- [ ] Seat holding mechanism with expiry
-- [ ] Booking flow with atomic transactions
-- [ ] Concurrency control — pessimistic locking (`SELECT ... FOR UPDATE`)
-- [ ] Concurrency control — optimistic locking (version-based), compared
-      against pessimistic locking for the same problem
-- [ ] Idempotent booking requests (safe retries, no duplicate bookings)
-- [ ] Coupon codes
-- [ ] Cancellation rules (time-based, before show start)
-- [ ] Automated tests, including simulated concurrent booking attempts
-- [ ] Prevent overlapping show times on the same screen (currently only
-      exact-duplicate start_time is blocked - a show's actual duration
-      isn't considered, so overlapping showtimes can be created)
-
 ---
+
+## API Reference
+
+Full interactive docs available at `http://localhost:8000/docs` after running the server.
+ 
+| Method | Endpoint                      | Description                         | Auth     |
+|--------|-------------------------------|-------------------------------------|----------|
+| GET    | `/movies`                     | List all movies                     | Public   |
+
+
+--
 
 ## Setup
 
@@ -152,19 +171,9 @@ psql -U postgres -c "CREATE DATABASE movie_booking_db;"
 
 # run migrations
 uv run alembic upgrade head
+
+# run server
+uv run fastapi dev app/main.py
 ```
 
-## Project Structure
-
-```
-app/
-├── core/           # settings, config
-├── db/
-│   ├── base.py     # SQLAlchemy engine/session setup
-│   └── models/     # one file per table
-├── api/routes/     # FastAPI endpoints (Phase 3)
-├── schemas/        # Pydantic request/response models
-└── services/       # business logic
-alembic/            # version-controlled schema migrations
-```
 
