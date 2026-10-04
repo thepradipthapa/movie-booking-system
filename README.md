@@ -112,6 +112,33 @@ even opened the seat map. `NULL` correctly represents "genuinely no one is
 holding this right now" rather than forcing a meaningless value into
 existence.
 
+**Why JWTs for authentication, and what's the trade-off?**
+JWTs are stateless — the server verifies a token's signature without
+needing to store or look up sessions anywhere, which scales cleanly
+across multiple server instances. The trade-off: a stolen token is valid
+until it expires, since there's no built-in way to revoke a single token
+early. This is mitigated with a short `ACCESS_TOKEN_EXPIRE_MINUTES` and
+mandatory HTTPS in production; true early revocation (e.g., on logout)
+would require an additional layer, like a server-side token blocklist,
+which trades away some of the statelessness benefit in exchange for
+that control.
+
+**Why does login return the same error for "user not found" and "wrong password"?**
+Returning different messages for each case would let an attacker
+determine which emails are actually registered in the system by testing
+logins against them — a known vulnerability called user enumeration.
+Both failure paths return an identical `401 "Invalid email or password"`,
+deliberately withholding which part was wrong.
+
+**Why does `/auth/login` use form data instead of JSON, unlike every other endpoint?**
+It accepts FastAPI's `OAuth2PasswordRequestForm`, matching the OAuth2
+password-flow spec and FastAPI's own standard pattern. This specific
+shape is what lets Swagger UI's built-in "Authorize" button call the
+login endpoint directly and attach the resulting token to every
+subsequent request automatically — useful for interactive testing,
+at the cost of this one endpoint being form-encoded rather than JSON
+like the rest of the API.
+
 ---
 
 ## High-Level Architecture
