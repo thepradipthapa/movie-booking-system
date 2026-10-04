@@ -3,7 +3,9 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.security import get_current_user
 from app.db.base import get_db
+from app.db.models.user import User
 from app.schemas.theater import TheaterCreate, TheaterResponse
 from app.services import theater_service
 
@@ -11,7 +13,11 @@ router = APIRouter(prefix="/theaters", tags=["theaters"])
 
 
 @router.post("/", response_model=TheaterResponse, status_code=201)
-def create_theater(theater_data: TheaterCreate, db: Session = Depends(get_db)):
+def create_theater(
+    theater_data: TheaterCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     return theater_service.create_theater(db, theater_data)
 
 

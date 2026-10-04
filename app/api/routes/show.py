@@ -8,7 +8,9 @@ from app.core.exceptions import (
     MovieNotFoundError,
     ScreenNotFoundError,
 )
+from app.core.security import get_current_user
 from app.db.base import get_db
+from app.db.models.user import User
 from app.schemas.show import ShowCreate, ShowResponse
 from app.services import show_service
 
@@ -16,7 +18,11 @@ router = APIRouter(prefix="/shows", tags=["shows"])
 
 
 @router.post("/", response_model=ShowResponse, status_code=201)
-def create_show(show_data: ShowCreate, db: Session = Depends(get_db)):
+def create_show(
+    show_data: ShowCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    ):
     try:
         return show_service.create_show(db, show_data)
     except MovieNotFoundError:

@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import DuplicateSeatError, ScreenNotFoundError
+from app.core.security import get_current_user
 from app.db.base import get_db
+from app.db.models.user import User
 from app.schemas.seat import SeatCreate, SeatResponse
 from app.services import seat_service
 
@@ -12,7 +14,11 @@ router = APIRouter(prefix="/seats", tags=["seats"])
 
 
 @router.post("/", response_model=SeatResponse, status_code=201)
-def create_seat(seat_data: SeatCreate, db: Session = Depends(get_db)):
+def create_seat(
+    seat_data: SeatCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    ):
     try:
         return seat_service.create_seat(db, seat_data)
     except ScreenNotFoundError:

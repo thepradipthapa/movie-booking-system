@@ -3,7 +3,9 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.security import get_current_user
 from app.db.base import get_db
+from app.db.models.user import User
 from app.schemas.screen import ScreenCreate, ScreenResponse
 from app.services import screen_service
 
@@ -11,7 +13,11 @@ router = APIRouter(prefix="/screens", tags=["screens"])
 
 
 @router.post("/", response_model=ScreenResponse, status_code=201)
-def create_screen(screen_data: ScreenCreate, db: Session = Depends(get_db)):
+def create_screen(
+    screen_data: ScreenCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    ):
     screen = screen_service.create_screen(db, screen_data)
     if screen is None:
         raise HTTPException(status_code=404, detail="Theater not found")
