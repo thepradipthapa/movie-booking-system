@@ -20,3 +20,10 @@ class DuplicateShowError(Exception):
     
 class EmailAlreadyExistsError(Exception):
     """Raised when signup is attempted with an email that's already registered."""
+    
+class ShowSeatNotFoundError(NotFoundError):
+    """No show_seats row exists for this (show_id, seat_id)."""
+
+
+class SeatNotAvailableError(Exception):
+    """Seat is already booked or held by another user."""

@@ -7,7 +7,7 @@ from app.core.exceptions import (
     MovieNotFoundError,
     ScreenNotFoundError,
 )
-from app.db.models import Movie, Screen, Show
+from app.db.models import Movie, Screen, Seat, Show, ShowSeat
 from app.schemas.show import ShowCreate
 
 
@@ -38,7 +38,16 @@ def create_show(db: Session, show_data: ShowCreate) -> Show:
         base_price=show_data.base_price,
     )
     db.add(new_show)
-    db.commit()
+    db.flush()  # Flush to get the new_show.id before committing
+    
+    seats = db.query(Seat).filter(Seat.screen_id == new_show.screen_id).all()
+    db.add_all(
+        [
+            ShowSeat(show_id=new_show.id, seat_id=seat.id, status="AVAILABLE")
+            for seat in seats
+        ]
+    )
+    db.commit() # Commit the transaction to save both the new show and its associated seats
     db.refresh(new_show)
     return new_show
 
